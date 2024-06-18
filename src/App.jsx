@@ -1,19 +1,81 @@
+import { useState, useEffect } from "react"
 import Guitar from "./components/Guitar"
 import Header from "./components/Header"
-import { useState } from "react"
+import { db } from "./data/db"
 function App() {
 
   //State
-  const [auth, setAuth] = useState(true)
+  const initial = JSON.parse(localStorage.getItem('cart')) || []
+  const [data] = useState(db)
+  const [cart, setCart] = useState(initial)
 
-  console.log(auth)
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+  }, [cart])
+
+  //Fnciones
+  function addToCart(item) {
+    const itemExists = cart.findIndex(guitar => guitar.id === item.id)
+    if (itemExists >= 0) {
+      if (cart[itemExists].quality >= 5) return
+      const updateCart = [...cart]
+      updateCart[itemExists].quality++
+      setCart(updateCart)
+    } else {
+      item.quality = 1
+      setCart([...cart, item])
+    }
+  }
+
+  function clearCart() {
+    setCart([])
+  }
+
+  function removeFromCart(item) {
+    setCart(updateCart => cart.filter(guitar => guitar.id !== item))
+  }
+
+  function addQuantity(item) {
+    const updateCart = cart.map(guitar => {
+      if (guitar.id === item && guitar.quality < 5) {
+        return { ...guitar, quality: guitar.quality + 1 }
+      }
+      return guitar
+    })
+    setCart(updateCart)
+  }
+
+  function removeQuantity(item) {
+    const updateCart = cart.map(guitar => {
+      if (guitar.id === item && guitar.quality > 1) {
+        return {
+          ...guitar,
+          quality: guitar.quality - 1
+        }
+      }
+      return guitar
+    })
+    setCart(updateCart)
+  }
+
   return (
     <>
-      <Header />
+      <Header cart={cart}
+        removeFromCart={removeFromCart}
+        addQuality={addQuantity}
+        removeQuality={removeQuantity}
+        clearCart={clearCart}
+      />
       <main className="container-xl mt-5">
         <h2 className="text-center">Nuestra Colección</h2>
         <div className="row mt-5">
-          <Guitar />
+          {data.map((guitar) => (
+            <Guitar
+              key={guitar.id}
+              guitar={guitar}
+              addToCart={addToCart}
+            />
+          ))}
         </div>
       </main>
 
