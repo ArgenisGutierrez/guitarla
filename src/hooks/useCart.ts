@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react"
 import { db } from "../data/db"
 import { useMemo } from "react"
+import { Guitar, CartItem } from "../types"
 export function useCart() {
 
   //State
-  const initial = JSON.parse(localStorage.getItem('cart')) || []
+  const initial = (): CartItem[] => {
+    const localStorageCart = localStorage.getItem('cart')
+    return localStorageCart ? JSON.parse(localStorageCart) : []
+  }
   const [data] = useState(db)
   const [cart, setCart] = useState(initial)
 
@@ -13,7 +17,7 @@ export function useCart() {
   }, [cart])
 
   //Fnciones
-  function addToCart(item) {
+  function addToCart(item: Guitar) {
     const itemExists = cart.findIndex(guitar => guitar.id === item.id)
     if (itemExists >= 0) {
       if (cart[itemExists].quality >= 5) return
@@ -21,8 +25,8 @@ export function useCart() {
       updateCart[itemExists].quality++
       setCart(updateCart)
     } else {
-      item.quality = 1
-      setCart([...cart, item])
+      const newItem: CartItem = { ...item, quality: 1 }
+      setCart([...cart, newItem])
     }
   }
 
@@ -30,13 +34,14 @@ export function useCart() {
     setCart([])
   }
 
-  function removeFromCart(item) {
-    setCart(updateCart => cart.filter(guitar => guitar.id !== item))
+  function removeFromCart(id:Guitar['id']) {
+    const updateCart = cart.filter(guitar => guitar.id !== id)
+    setCart(updateCart)
   }
 
-  function addQuantity(item) {
+  function addQuantity(id:Guitar['id']) {
     const updateCart = cart.map(guitar => {
-      if (guitar.id === item && guitar.quality < 5) {
+      if (guitar.id === id && guitar.quality < 5) {
         return { ...guitar, quality: guitar.quality + 1 }
       }
       return guitar
@@ -44,9 +49,9 @@ export function useCart() {
     setCart(updateCart)
   }
 
-  function removeQuantity(item) {
+  function removeQuantity(id:Guitar['id']) {
     const updateCart = cart.map(guitar => {
-      if (guitar.id === item && guitar.quality > 1) {
+      if (guitar.id === id && guitar.quality > 1) {
         return {
           ...guitar,
           quality: guitar.quality - 1
