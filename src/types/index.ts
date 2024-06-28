@@ -7,7 +7,7 @@ export type Guitar = {
 }
 
 export type CartItem = Guitar & {
-  quality: number
+  quantity: number
 }
 
 // export type GuitarId = Guitar['id']

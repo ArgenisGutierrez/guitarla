@@ -13,42 +13,106 @@ export type CartState = {
   cart: CartItem[]
 }
 
+const localStorageCart = (): CartItem[] => {
+  const cart = localStorage.getItem('cart')
+  return cart ? JSON.parse(cart) : []
+}
+
 export const initialState: CartState = {
   data: db,
-  cart: []
+  cart: localStorageCart()
 }
 
 export const cartReducer = (
   state: CartState = initialState,
   action: CartActions
 ) => {
+  const MAX_QUANTITY = 5
+  const MIN_QUANTITY = 1
+
   if (action.type === 'add-to-cart') {
+
+    const itemExist = state.cart.find(guitar => guitar.id === action.payload.item.id)
+    let updatedCart: CartItem[] = []
+
+    if (itemExist) {
+      updatedCart = state.cart.map(item => {
+        if (item.id === action.payload.item.id) {
+          if (item.quantity < MAX_QUANTITY) {
+            return { ...item, quantity: item.quantity + 1 }
+          } else {
+            return item
+          }
+        } else {
+          return item
+        }
+      })
+    } else {
+      const newItem = { ...action.payload.item, quantity: 1 }
+      updatedCart = [...state.cart, newItem]
+    }
     return {
-      ...state
+      ...state,
+      cart: updatedCart
     }
   }
 
   if (action.type === 'remove-from-cart') {
+
+    const updatedCart = state.cart.filter(item => item.id !== action.payload.id)
+
     return {
-      ...state
+      ...state,
+      cart: updatedCart
     }
   }
 
   if (action.type === 'increase-quantity') {
+
+    let updatedCart: CartItem[] = []
+    updatedCart = state.cart.map(item => {
+      if (item.id === action.payload.id) {
+        if (item.quantity < MAX_QUANTITY) {
+          return { ...item, quantity: item.quantity + 1 }
+        } else {
+          return item
+        }
+      } else {
+        return item
+      }
+    })
+
     return {
-      ...state
+      ...state,
+      cart: updatedCart
     }
   }
 
   if (action.type === 'decrease-quantity') {
+
+    let updatedCart: CartItem[] = []
+    updatedCart = state.cart.map(item => {
+      if (item.id === action.payload.id) {
+        if (item.quantity > MIN_QUANTITY) {
+          return { ...item, quantity: item.quantity - 1 }
+        } else {
+          return item
+        }
+      } else {
+        return item
+      }
+    })
+
     return {
-      ...state
+      ...state,
+      cart: updatedCart
     }
   }
 
   if (action.type === 'clear-cart') {
     return {
-      ...state
+      ...state,
+      cart: []
     }
   }
 
